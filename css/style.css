@@ -10,13 +10,15 @@
 body{
   font-family: Arial, Helvetica, sans-serif;
   margin:0;
-  background:var(--bg);
+  background:var(--header-bg);
   color:#222;
   padding:20px;
 }
 .page{max-width:1000px;margin:0 auto}
-.header{text-align:center;margin-bottom:18px}
-.header__title{font-size:28px;margin:0;font-weight:700}
+.header{display: flex;text-align:center;margin-bottom:18px;justify-content: space-between;}
+.header__title{
+  font-size:28px;margin:0;font-weight:700
+}
 
 .controls-top{
   display:flex;
@@ -34,7 +36,7 @@ body{
 }
 
 /* Buttons */
-.buttons-wrap{display:flex;gap:8px;align-items:center}
+.buttons-wrap{display:flex;gap:8px;}
 .controls__button{
   padding:10px 16px;border-radius:8px;border:none;cursor:pointer;
   background:var(--blue);color:white;font-weight:600;transition:background .15s;
@@ -103,6 +105,7 @@ body{
 .schedule__table td:first-child{
   width:120px;
   white-space:nowrap;
+  text-align:left;
 }
 
 /* Subject left aligned for readability */
@@ -132,4 +135,44 @@ body{
   .schedule__table th:first-child,
   .schedule__table td:first-child{width:100px}
   .week-day-block{padding:10px}
+}
+
+:root {
+  --bg: #f5f6f7;
+  --text: #333;
+  --accent: #007bff;
+  --card: #fff;
+}
+
+body.dark {
+  --bg: #1e1e1e;
+  --text: #f0f0f0;
+  --accent: #4da6ff;
+  --card: #2a2a2a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+.theme-toggle {
+  align-items:first baseline;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+body.dark .schedule__today-row{
+  background: #002247;
+}
+
+body.dark #group-select{
+  background: #002247;
+  color: #ccc;
 }

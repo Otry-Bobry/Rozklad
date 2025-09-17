@@ -260,3 +260,11 @@ function escapeHtml(str){
 
 // старт
 loadSchedule();
+
+// Темна тема
+const themeBtn = document.getElementById("themeToggle");
+themeBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  // міняємо іконку
+  themeBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+});
