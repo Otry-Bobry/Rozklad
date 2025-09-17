@@ -1,0 +1,122 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f5f6f7;
+  color: #333;
+}
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header__title {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.controls {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.controls__button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #007bff;
+  color: white;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.controls__button:hover {
+  background: #0056b3;
+}
+
+.controls__button--active {
+  background: #0056b3;
+}
+
+.schedule {
+  display: none;
+}
+
+.schedule--active {
+  display: block;
+}
+
+/* Стилі для таблиць */
+.schedule__table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-top: 10px;
+}
+
+.schedule__table th,
+.schedule__table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+}
+
+.schedule__table th {
+  background: #007bff;
+  color: white;
+}
+
+/* Підсвічування сьогоднішнього дня в тижневій таблиці */
+.schedule__today-row {
+  background-color: #e0f7fa;
+}
+
+/* Адаптивність */
+@media (max-width: 600px) {
+  .schedule__table th,
+  .schedule__table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .controls__button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .header__title {
+    font-size: 22px;
+  }
+}
+
+.controls__button--refresh {
+  background: #28a745;
+}
+
+.controls__button--refresh:hover {
+  background: #218838;
+}
+
+.week-day-block {
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #fdfdfd;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.week-day-block h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+0
