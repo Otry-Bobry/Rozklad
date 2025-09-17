@@ -1,25 +1,38 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Розклад 1 курс – Духові</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Розклад — Духові 1 курс</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div class="page">
     <header class="header">
-      <h1 class="header__title">Розклад 1 курс – Духові</h1>
+      <h1 class="header__title">Розклад — Духові (1 курс)</h1>
     </header>
 
-    <div class="controls">
-      <button class="controls__button controls__button--active" onclick="showSchedule('today', event)">Сьогодні</button>
-      <button class="controls__button" onclick="showSchedule('week', event)">Тиждень</button>
-      <button class="controls__button controls__button--refresh" onclick="refreshSchedule()">Оновити</button>
+    <div class="controls controls-top">
+      <div class="group-select-wrap">
+        <label for="group-select">Оберіть групу:</label>
+        <select id="group-select" onchange="changeGroup(this.value)"></select>
+      </div>
+
+      <div class="buttons-wrap">
+        <button class="controls__button controls__button--active" onclick="showSchedule('today', event)">Сьогодні</button>
+        <button class="controls__button" onclick="showSchedule('week', event)">Тиждень</button>
+        <button class="controls__button controls__button--refresh" onclick="refreshSchedule()">Оновити</button>
+      </div>
     </div>
+
+    <div id="loading" class="loading" hidden>Завантаження…</div>
 
     <div id="today" class="schedule schedule--active"></div>
     <div id="week" class="schedule"></div>
+
+    <footer class="footer">
+      <small>Працює з Google Sheets (CSV). Підключіть свій CSV URL у js/script.js → sheetUrl.</small>
+    </footer>
   </div>
 
   <script src="js/script.js"></script>
