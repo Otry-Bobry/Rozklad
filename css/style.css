@@ -154,7 +154,7 @@ body {
 
 /* 🔹 Тижневі блоки */
 .week-day-block {
-  padding: 14px 14px 0px 14px;
+  padding-top: 14px;
 }
 
 .week-day-block h3 {
@@ -232,5 +232,5 @@ body {
   .schedule__table th:last-child{padding-left: 8px;}
   .schedule__table th:first-child,
   .schedule__table td:first-child { width: 100px; }
-  .week-day-block { padding: 10px; }
+  .week-day-block { padding-top: 10px; }
 }
