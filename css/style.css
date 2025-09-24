@@ -1,178 +1,236 @@
-:root{
-  --blue:#007bff;
-  --blue-dark:#0056b3;
-  --green:#28a745;
-  --bg:#f5f6f7;
-  --card:#fff;
-}
-
-*{box-sizing:border-box}
-body{
-  font-family: Arial, Helvetica, sans-serif;
-  margin:0;
-  background:var(--header-bg);
-  color:#222;
-  padding:20px;
-}
-.page{max-width:1000px;margin:0 auto}
-.header{display: flex;text-align:center;margin-bottom:18px;justify-content: space-between;}
-.header__title{
-  font-size:28px;margin:0;font-weight:700
-}
-
-.controls-top{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  margin-bottom:12px;
-}
-
-.group-select-wrap{display:flex;align-items:center;gap:8px}
-.group-select-wrap label{font-weight:600}
-#group-select{
-  padding:8px 10px;border-radius:8px;border:1px solid #ccc;background:white;
-}
-
-/* Buttons */
-.buttons-wrap{display:flex;gap:8px;}
-.controls__button{
-  padding:10px 16px;border-radius:8px;border:none;cursor:pointer;
-  background:var(--blue);color:white;font-weight:600;transition:background .15s;
-}
-.controls__button:hover{background:var(--blue-dark)}
-.controls__button--active{background:var(--blue-dark)}
-.controls__button--refresh{background:var(--green)}
-.controls__button--refresh:hover{background:#218838}
-
-/* Loading */
-.loading{
-  text-align:center;
-  padding:8px 12px;
-  margin-bottom:8px;
-  background:#fff;
-  border-radius:8px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.05);
-}
-
-/* Schedule blocks */
-.schedule{display:none}
-.schedule--active{display:block}
-
-/* Week day block */
-.week-day-block{
-  margin-bottom:20px;
-  padding:14px;
-  background:var(--card);
-  border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
-}
-
-/* Day title - centered, uppercase */
-.week-day-block h3{
-  text-align:center;
-  margin:0 0 12px 0;
-  font-size:20px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:2px;
-  color:var(--blue);
-}
-
-/* Table styles */
-.schedule__table{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed; /* important for consistent columns */
-  overflow:hidden;
-}
-.schedule__table th,
-.schedule__table td{
-  border:1px solid #e6e6e6;
-  padding:10px;
-  font-size:15px;
-  vertical-align:middle;
-}
-
-/* Header */
-.schedule__table th{
-  background:var(--blue);color:white;font-weight:700;
-}
-
-/* Fixed narrow time column, subject takes rest */
-.schedule__table th:first-child,
-.schedule__table td:first-child{
-  width:120px;
-  white-space:nowrap;
-  text-align:left;
-}
-
-/* Subject left aligned for readability */
-.schedule__table td:nth-child(2){
-  text-align:left;
-  padding-left:16px;
-}
-
-/* Highlight today's rows */
-.schedule__today-row{background:#eaf8ff}
-
-/* Small message */
-.schedule__empty{
-  padding:16px;background:#fff;border-radius:10px;text-align:center;color:#666;
-  box-shadow:0 1px 4px rgba(0,0,0,0.03);
-}
-
-/* Footer */
-.footer{margin-top:18px;text-align:center;color:#666;font-size:13px}
-
-/* Responsive */
-@media (max-width:700px){
-  .group-select-wrap{width:100%;justify-content:space-between}
-  .buttons-wrap{width:100%;justify-content:flex-start;flex-wrap:wrap}
-  .schedule__table th,
-  .schedule__table td{font-size:14px;padding:8px}
-  .schedule__table th:first-child,
-  .schedule__table td:first-child{width:100px}
-  .week-day-block{padding:10px}
-}
-
+/* 🎨 Кольорові змінні */
 :root {
+  --blue: #0058b5;
+  --blue-dark: #001f3f;
+  --green: #28a745;
+
   --bg: #f5f6f7;
-  --text: #333;
-  --accent: #007bff;
+  --text: #222;
   --card: #fff;
+  --border: #ccc;
+  --header-bg: #e9ecef;
+  --header-text: #000;
+  --muted: #666;
+  --today: #eaf8ff;
+  --shadow: #eaeaea;
+  --inside_shadow: #ececec;
 }
 
 body.dark {
   --bg: #1e1e1e;
   --text: #f0f0f0;
-  --accent: #4da6ff;
   --card: #2a2a2a;
+  --blue: #005ab5;
+  --blue-dark: #002d54;
+  --border: #444;
+  --header-bg: #333;
+  --header-text: #fff;
+  --muted: #aaa;
+  --today: #002247;
+  --shadow: #ffffff25;
+  --inside_shadow: #ffffff0e;
 }
 
+/* 🔹 Загальні стилі */
+* { box-sizing: border-box; }
+
 body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
   background: var(--bg);
   color: var(--text);
+  padding: 20px;
   transition: background 0.3s, color 0.3s;
 }
 
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 20px;
+  box-shadow: 0 1px 4px var(--shadow);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* 🔹 Header */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.header__title {
+  font-size: 28px;
+  margin: 0;
+  font-weight: 700;
+  color: var(--header-text);
+}
+
+/* 🔹 Перемикач теми */
 .theme-toggle {
-  align-items:first baseline;
-  background: var(--accent);
+  background: var(--blue);
   color: #fff;
   border: none;
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
+  transition: background 0.2s;
+  flex: 0 0 auto; /* фіксована ширина */
+  white-space: nowrap;
+}
+.theme-toggle:hover {
+  background: var(--blue-dark);
 }
 
-body.dark .schedule__today-row{
-  background: #002247;
+/* 🔹 Верхні контролери */
+.controls-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content:space-between;
+  flex-wrap:wrap-reverse;
+  margin-bottom: 12px;
 }
 
-body.dark #group-select{
-  background: #002247;
-  color: #ccc;
+.group-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto; /* дозволяє стискатися та розтягуватись */
+  min-width: 180px;
+}
+.group-select-wrap label { font-weight: 600; }
+
+#group-select {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+
+/* 🔹 Кнопки */
+.buttons-wrap {
+  display: flex;
+  flex-wrap: wrap; /* кнопки теж переносяться */
+  gap: 8px;
+  flex: 2 1 auto; /* займають більше місця */
+  justify-content: flex-end;
+  min-width: 200px;
+}
+
+.controls__button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: var(--blue);
+  color: white;
+  font-weight: 600;
+  transition: background .15s;
+}
+.controls__button:hover { background: var(--blue-dark); }
+.controls__button--active { background: var(--blue-dark); }
+.controls__button--refresh { background: var(--green); }
+.controls__button--refresh:hover { background: #218838; }
+
+/* 🔹 Loading */
+.loading {
+  text-align: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--header-bg);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px var(--inside_shadow);
+}
+
+/* 🔹 Блоки розкладу */
+.schedule { display: none; }
+.schedule--active { display: block; }
+
+/* 🔹 Тижневі блоки */
+.week-day-block {
+  padding: 14px 14px 0px 14px;
+}
+
+.week-day-block h3 {
+  text-align: center;
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--blue);
+}
+
+/* 🔹 Таблиця */
+.schedule__table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+  box-shadow: 0 2px 8px var(--inside_shadow);
+}
+
+.schedule__table th {
+  background: var(--header-bg);
+  color: var(--header-text);
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 16px;
+}
+
+.schedule__table td {
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+
+.schedule__table th:first-child,
+.schedule__table td:first-child {
+  width: 120px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.schedule__today-row {
+  background: var(--today);
+}
+
+/* 🔹 Якщо немає пар */
+.schedule__empty {
+  padding: 16px;
+  background: var(--card);
+  border-radius: 10px;
+  text-align: center;
+  color: var(--muted);
+  box-shadow: 0 1px 4px var(--inside_shadow);
+}
+
+/* 🔹 Footer */
+.footer {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* 🔹 Responsive */
+@media (max-width: 700px) {
+  .group-select-wrap { width: 100%; justify-content:flex-end; }
+  .buttons-wrap { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .schedule__table th,
+  .schedule__table td { font-size: 14px; padding: 8px; }
+  .schedule__table th:last-child{padding-left: 8px;}
+  .schedule__table th:first-child,
+  .schedule__table td:first-child { width: 100px; }
+  .week-day-block { padding: 10px; }
 }

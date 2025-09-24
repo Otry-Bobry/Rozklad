@@ -6,11 +6,10 @@
   <title>РОЗКЛАД</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body class="dark">
   <div class="page">
     <header class="header">
       <h1 class="header__title">РОЗКЛАД</h1>
-      <button id="themeToggle" class="theme-toggle">🌙</button>
     </header>
 
     <div class="controls controls-top">
@@ -23,6 +22,7 @@
         <button class="controls__button controls__button--active" onclick="showSchedule('today', event)">Сьогодні</button>
         <button class="controls__button" onclick="showSchedule('week', event)">Тиждень</button>
         <button class="controls__button controls__button--refresh" onclick="refreshSchedule()">Оновити</button>
+        <button id="themeToggle" class="theme-toggle">🌙</button>
       </div>
     </div>
 
