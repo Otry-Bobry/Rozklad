@@ -234,3 +234,5 @@ body {
   .schedule__table td:first-child { width: 100px; }
   .week-day-block { padding-top: 10px; }
 }
+
+a{color: var(--text); margin-left: 5px;}
