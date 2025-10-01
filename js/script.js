@@ -1,11 +1,9 @@
 // -----------------
-// ВАЖЛИВО: заміни sheetUrl на свій CSV-посилання з Google Sheets
-// Отримати: Файл → Опублікувати в інтернеті → формат CSV → скопіювати URL
-// Приклад: "https://docs.google.com/spreadsheets/d/ВАШ_ID/export?format=csv"
+// ВАЖЛИВО: переконайся, що sheetUrl вказано вірно і Google Sheet опубліковано як CSV
 // -----------------
-const sheetUrl = "https://docs.google.com/spreadsheets/d/1PdUmF2UjeKjiYnzz9Tc0Y6ax_AqSR0qhrZ72mlKq_qs/export?format=csv"; // <-- вставити сюди
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1PdUmF2UjeKjiYnzz9Tc0Y6ax_AqSR0qhrZ72mlKq_qs/export?format=csv";
 
-let scheduleData = {}; // { group1: {Понеділок: [{time,subject}, ...], ...}, group2: {...} }
+let scheduleData = {}; // { group: {Понеділок: [{time,subject,room,link}, ...], ...} }
 let groups = [];
 let currentGroup = null;
 
@@ -20,7 +18,7 @@ function showLoading(show){
   loadingEl.hidden = !show;
 }
 
-/** Простий, але надійний парсер CSV (працює з лапками і комами в полях) */
+/** Простий CSV парсер (робочий для більшості CSV, бере до уваги лапки) */
 function parseCSV(text){
   const rows = [];
   let cur = "";
@@ -46,7 +44,7 @@ function parseCSV(text){
         row.push(cur);
         cur = "";
       } else if(ch === '\r'){
-        // ignore, wait for \n or skip
+        // ignore CR
       } else if(ch === '\n'){
         row.push(cur);
         rows.push(row);
@@ -57,12 +55,31 @@ function parseCSV(text){
       }
     }
   }
-  // push last
   if(cur !== "" || row.length > 0){
     row.push(cur);
     rows.push(row);
   }
   return rows;
+}
+
+/** Нормалізація заголовків (видаляє пробіли, пунктуацію, ставить в lower) */
+function normalizeHeader(h){
+  return String(h || "")
+    .replace(/\uFEFF/g,"")        // BOM
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\s\W_]+/g, '');    // лишаємо тільки букви/цифри
+}
+
+/** Пошук індексу першого підходящого імені стовпця (альтернативи) */
+function findIndexByAliases(headersNorm, aliases){
+  for(const alias of aliases){
+    const norm = normalizeHeader(alias);
+    const idx = headersNorm.indexOf(norm);
+    if(idx >= 0) return idx;
+  }
+  return -1;
 }
 
 /** Завантажуємо CSV з Google Sheets і структуруємо дані */
@@ -74,22 +91,35 @@ async function loadSchedule(){
       throw new Error(`Fetch error: ${res.status}`);
     }
     const text = await res.text();
-    // парсимо
     const rawRows = parseCSV(text).map(r => r.map(c => (c||"").trim()));
     if(rawRows.length === 0){
       throw new Error("Порожній CSV");
     }
 
-    // headers (звичайно: group,day,time,subject) — приведемо до нижнього регістру
-    const headerRow = rawRows[0].map(h => h.replace(/\uFEFF/g,"").trim().toLowerCase()); // видалити BOM
-    const idx = {};
-    headerRow.forEach((h,i) => idx[h] = i);
+    // заголовки
+    const headerRowRaw = rawRows[0];
+    const headersNorm = headerRowRaw.map(h => normalizeHeader(h));
 
-    // перевіримо необхідні поля
-    const need = ["group","day","time","subject"];
-    for(const f of need){
-      if(!(f in idx)){
-        throw new Error(`В CSV немає колонки "${f}". Перевір заголовки (повинні бути: group, day, time, subject).`);
+    // допустимі назви колонок (пошук враховує англ/укр варіанти)
+    const aliases = {
+      group: ['group','група','groupname','groupid'],
+      day: ['day','день'],
+      time: ['time','час','time_','hour'],
+      subject: ['subject','предмет','lesson','course','назва'],
+      room: ['room','auditorium','аудиторія','ауд','classroom','аудиторія№','аудиторіяномер'],
+      link: ['link','url','посилання','лінк','meeting','meetinglink']
+    };
+
+    const idx = {};
+    for(const key of Object.keys(aliases)){
+      idx[key] = findIndexByAliases(headersNorm, aliases[key]);
+    }
+
+    // Перевірка обов'язкових полів
+    const required = ['group','day','time','subject'];
+    for(const r of required){
+      if(idx[r] < 0){
+        throw new Error(`У CSV не знайдено обов'язковий стовпець для "${r}". Можливі імена: ${aliases[r].join(', ')}`);
       }
     }
 
@@ -98,25 +128,32 @@ async function loadSchedule(){
     groups = [];
     for(let r=1;r<rawRows.length;r++){
       const row = rawRows[r];
-      if(row.length === 0) continue;
-      const group = (row[idx["group"]]||"").trim();
-      const day = (row[idx["day"]]||"").trim();
-      const time = (row[idx["time"]]||"").trim();
-      const subject = (row[idx["subject"]]||"").trim();
+      if(!row || row.length === 0) continue;
+
+      const group = (idx.group >=0 ? (row[idx.group] || "") : "").trim();
+      const day = (idx.day >=0 ? (row[idx.day] || "") : "").trim();
+      const time = (idx.time >=0 ? (row[idx.time] || "") : "").trim();
+      const subject = (idx.subject >=0 ? (row[idx.subject] || "") : "").trim();
+      const room = (idx.room >=0 ? (row[idx.room] || "") : "").trim();
+      let link = (idx.link >=0 ? (row[idx.link] || "") : "").trim();
+
       if(!group || !day) continue;
+
+      // якщо посилання є, але без схеми - додаємо https://
+      if(link && !/^https?:\/\//i.test(link)){
+        link = 'https://' + link;
+      }
 
       if(!scheduleData[group]) scheduleData[group] = {};
       if(!scheduleData[group][day]) scheduleData[group][day] = [];
-      scheduleData[group][day].push({time, subject});
+      scheduleData[group][day].push({time, subject, room, link});
 
       if(!groups.includes(group)) groups.push(group);
     }
 
-    // сортуємо групи алфавітно
     groups.sort();
-
     populateGroupSelect();
-    // встановити currentGroup: або з localStorage або перша група
+
     const stored = localStorage.getItem('selectedGroup');
     currentGroup = stored && groups.includes(stored) ? stored : (groups[0] || null);
 
@@ -130,7 +167,7 @@ async function loadSchedule(){
 
   } catch(err){
     console.error(err);
-    document.getElementById('today').innerHTML = `<div class="schedule__empty">Помилка завантаження: ${err.message}</div>`;
+    document.getElementById('today').innerHTML = `<div class="schedule__empty">Помилка завантаження: ${escapeHtml(err.message)}</div>`;
     document.getElementById('week').innerHTML = '';
   } finally{
     showLoading(false);
@@ -158,11 +195,75 @@ function changeGroup(group){
 /** Рендерити вибрану групу */
 function renderGroup(group){
   const week = scheduleData[group] || {};
-  // today name
   const todayName = daysForGetDay[new Date().getDay()]; // 0..6 -> Неділя..Субота
   renderToday(week[todayName] || []);
   renderWeek(week, todayName);
 }
+
+/** Створює TD для предмета з аудиторією і посиланням */
+function createSubjectCell(subject, room, link){
+  const td = document.createElement('td');
+  td.className = "lesson-cell";  // додаємо клас
+
+  // const link = document.createElement('td');
+  // td.className = "lesson-link-block";
+
+  const leftDiv = document.createElement('div');
+  leftDiv.className = "lesson-left";
+
+  const subjSpan = document.createElement('span');
+  subjSpan.textContent = subject;
+  subjSpan.className = "lesson-name";
+  leftDiv.appendChild(subjSpan);
+
+  if(room){
+    const roomSpan = document.createElement('span');
+    roomSpan.textContent = " · " + room;
+    roomSpan.className = "lesson-room";
+    leftDiv.appendChild(roomSpan);
+  }
+
+  td.appendChild(leftDiv);
+
+  if(link){
+    const icon = createLinkIcon(link);
+    if(icon) td.appendChild(icon);
+  }
+
+  return td;
+}
+
+
+function createLinkIcon(link){
+  if(!link) return null;
+
+  const a = document.createElement('a');
+  a.className = "link-icon";
+  a.href = link;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+
+  const img = document.createElement('img');
+  img.alt = "link";
+  img.className = "lesson-icon";
+
+  if(link.includes("zoom.us")){
+    img.src = "https://tidbits.com/uploads/2022/09/Zoom-5_12-icon.png";
+  } else if(link.includes("meet.google.com")){
+    img.src = "https://img.icons8.com/color/48/google-meet.png";
+  } else if(link.includes("teams.microsoft.com")){
+    img.src = "https://img.icons8.com/color/48/microsoft-teams.png";
+  } else if(link.includes("discord.gg") || link.includes("discord.com")){
+    img.src = "https://img.icons8.com/color/48/discord-logo.png";
+  } else {
+    img.src = "https://img.icons8.com/ios-filled/48/link.png";
+  }
+
+  a.appendChild(img);
+  return a;
+}
+
+
 
 /** Сьогодні */
 function renderToday(todayArr){
@@ -171,15 +272,29 @@ function renderToday(todayArr){
     container.innerHTML = '<div class="schedule__empty">Сьогодні пар немає.</div>';
     return;
   }
-  // сортувати за часом (простіше: лексичний)
   const arr = [...todayArr].sort((a,b)=> a.time.localeCompare(b.time));
 
-  let html = `<table class="schedule__table"><thead><tr><th>Час</th><th>Предмет</th></tr></thead><tbody>`;
+  const table = document.createElement('table');
+  table.className = 'schedule__table';
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr><th>Час</th><th>Предмет</th></tr>`;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
   arr.forEach(item => {
-    html += `<tr class="schedule__today-row"><td>${escapeHtml(item.time)}</td><td>${escapeHtml(item.subject)}</td></tr>`;
+    const tr = document.createElement('tr');
+    tr.className = 'schedule__today-row';
+    const tdTime = document.createElement('td');
+    tdTime.textContent = item.time || '—';
+    const tdSub = createSubjectCell(item.subject, item.room, item.link);
+    tr.appendChild(tdTime);
+    tr.appendChild(tdSub);
+    tbody.appendChild(tr);
   });
-  html += `</tbody></table>`;
-  container.innerHTML = html;
+  table.appendChild(tbody);
+
+  container.innerHTML = '';
+  container.appendChild(table);
 }
 
 /** Тиждень — блоки за днями */
@@ -187,7 +302,6 @@ function renderWeek(weekObj, todayName){
   const container = document.getElementById('week');
   container.innerHTML = "";
 
-  // Пройти дні в порядку daysOrder
   let any = false;
   daysOrder.forEach(day => {
     const items = weekObj[day];
@@ -210,15 +324,16 @@ function renderWeek(weekObj, todayName){
 
     const tbody = document.createElement('tbody');
 
-    // сортуємо по часу
     const arr = [...items].sort((a,b)=> a.time.localeCompare(b.time));
     arr.forEach(it => {
       const tr = document.createElement('tr');
       if(day === todayName) tr.classList.add('schedule__today-row');
+
       const tdTime = document.createElement('td');
-      tdTime.textContent = it.time;
-      const tdSub = document.createElement('td');
-      tdSub.textContent = it.subject;
+      tdTime.textContent = it.time || '—';
+
+      const tdSub = createSubjectCell(it.subject, it.room, it.link);
+
       tr.appendChild(tdTime);
       tr.appendChild(tdSub);
       tbody.appendChild(tr);
@@ -247,7 +362,7 @@ function refreshSchedule(){
   loadSchedule();
 }
 
-/** Захист від XSS (набагато простіше, бо ми лише відображаємо текст) */
+/** Захист від XSS (для відображуваного тексту) */
 function escapeHtml(str){
   if(!str) return "";
   return String(str)
@@ -261,10 +376,11 @@ function escapeHtml(str){
 // старт
 loadSchedule();
 
-// Темна тема
+// Темна тема (кнопка)
 const themeBtn = document.getElementById("themeToggle");
-themeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  // міняємо іконку
-  themeBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-});
+if(themeBtn){
+  themeBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    themeBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  });
+}

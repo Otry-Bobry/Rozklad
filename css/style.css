@@ -116,14 +116,14 @@ body {
 /* 🔹 Кнопки */
 .buttons-wrap {
   display: flex;
-  flex-wrap: wrap; /* кнопки теж переносяться */
-  gap: 8px;
-  flex: 2 1 auto; /* займають більше місця */
-  justify-content: flex-end;
+  gap: 6px;
+  flex: 2 2 auto; /* займають більше місця */
   min-width: 200px;
 }
 
 .controls__button {
+  flex: 1 1 auto;
+  min-width: 90px;
   padding: 10px 16px;
   border-radius: 8px;
   border: none;
@@ -235,4 +235,33 @@ body {
   .week-day-block { padding-top: 10px; }
 }
 
-a{color: var(--text); margin-left: 5px;}
+a{color: var(--text);}
+
+.lesson-cell {
+  display: flex;
+  justify-content: space-between; /* текст зліва, іконка справа */
+  align-items: center;
+}
+
+.lesson-left {
+  display: inline-block;   /* блок підлаштовується під контент */
+}
+
+.lesson-room {
+  color: var(--muted);
+  margin-left: 3px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.lesson-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.link-icon{
+  display: inline-block; 
+  line-height: 0;          /* прибирає додатковий пробіл всередині */
+  text-decoration: none; 
+  margin-left: 3px;
+}
