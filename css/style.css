@@ -46,6 +46,7 @@ body {
 }
 
 .page {
+  position: relative; /* ✅ ключове */
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
@@ -55,12 +56,13 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
+
 /* 🔹 Header */
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   margin-bottom: 18px;
 }
 
@@ -288,17 +290,18 @@ body {
 
 /* ===== Burger menu ===== */
 .burger-menu {
-  position: fixed;
-  top: 70px;
-  left: 16px;
+  position: absolute;
+  top: 60px;   /* під header */
+  left: 0;     /* відносно .page */
   width: 280px;
   background: var(--card);
   border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+  box-shadow: 0 0 40px 8px rgba(0,0,0,.3);
   padding: 12px;
   display: none;
   z-index: 3000;
 }
+
 
 .burger-menu.open {
   display: block;
