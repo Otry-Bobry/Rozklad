@@ -444,21 +444,33 @@ function renderGroup(group){
 
   const filtered = {};
 
-  for(const day in week){
+  for (const day in week) {
     filtered[day] = week[day].filter(item => {
-      if(item.subgroup){
-        const selected = selectedSubgroups[item.subject];
-        if(Array.isArray(selected) && !selected.includes(item.subgroup)){
-          return false;
-        }
+
+      // якщо у предмета НЕМАЄ підгрупи → показуємо
+      if (!item.subgroup) return true;
+
+      const selected = selectedSubgroups[item.subject];
+
+      // якщо користувач нічого не вибрав для цього предмета → НЕ показуємо
+      if (!Array.isArray(selected) || selected.length === 0) {
+        return false;
       }
-    return true;
+
+      // якщо ця підгрупа не входить у вибрані → НЕ показуємо
+      if (!selected.includes(item.subgroup)) {
+        return false;
+      }
+
+      // інакше → показуємо
+      return true;
     });
   }
 
   renderToday(filtered[todayName] || []);
   renderWeek(filtered, todayName);
 }
+
 
 /** Створює TD для предмета з аудиторією і посиланням */
 function createSubjectCell(subject, room, link){
