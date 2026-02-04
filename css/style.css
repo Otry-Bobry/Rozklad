@@ -14,6 +14,7 @@
   --today: #eaf8ff;
   --shadow: #eaeaea;
   --inside_shadow: #ececec;
+  --select-shadow: #ececec;
 }
 
 body.dark {
@@ -29,6 +30,7 @@ body.dark {
   --today: #002247;
   --shadow: #ffffff00;
   --inside_shadow: #ffffff0e;
+  --select-shadow: #000000;
 }
 
 /* 🔹 Загальні стилі */
@@ -309,19 +311,26 @@ body {
 
 /* accordion */
 .burger-subject {
-  font-weight: 700;
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
   background: var(--bg);
   margin-top: 6px;
-  box-shadow: 0 0 5px var(--shadow);
+  box-shadow: 0 0 3px var(--select-shadow);
+  transition: 0.5s;
+}
+
+.burger-subject:hover {
+  background: var(--card);
+  box-shadow: 0 0 20px 5px var(--select-shadow);
+  transition: 0.5s;
 }
 
 .burger-groups {
   margin: 5px;
   display: none;
   color: var(--text);
+
 }
 
 .burger-groups button {
@@ -333,22 +342,21 @@ body {
   cursor: pointer;
   color: var(--text);
   border-radius: 8px;
-  margin-top: 2px;
-  transition: background 0.3s, color 0.3s;
+  box-shadow: 0 0 5px var(--select-shadow);
+  transition: 0.3s;
 }
 
 .burger-groups button:hover {
-  background: var(--blue-dark);
-  color: white;
-  transition: 0.5s;
-  transition: background 0.3s, color 0.3s;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 0 20px 5px var(--select-shadow);
+  transition: 0.3s;
 }
 
 .burger-groups button.active {
   background: var(--blue);
   color: white;
   transition: 0.5s;
-  transition: background 0.3s, color 0.3s;
 }
 
 .onboarding {
@@ -374,7 +382,6 @@ body {
   max-width: 360px;
   box-shadow: 0 10px 40px rgba(0,0,0,.3);
   text-align: center;
-  transition: background 0.3s, color 0.3s, border 0.3s;
 }
 
 .onboarding__card select {
@@ -384,28 +391,27 @@ body {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  transition: background 0.3s, color 0.3s, border 0.3s;
+  transition: 0.3s;
 }
 
 .onboarding__card button {
-  width: 100%;
+  width: 100%;;
   margin-top: 12px;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid transparent;
-  background: var(--blue-dark);
-  color: white;
-  font-weight: 700;
+  background: var(--bg);
+  color: var(--text);
   cursor: pointer;
-  transition: background 0.3s, color 0.3s, border 0.3s;
+  transition: 0.3s;
 }
 .onboarding__card button:hover {
-  background: var(--blue) ;
-  border: #000 1px solid;
+  background: var(--card) ;
+  box-shadow: 0 0 20px 5px var(--select-shadow);
+  transition: 0.3s;
 }
 
 .onboarding__card button.active {
-  border: #000 1px solid !important;
   background: var(--green);
 }
 
