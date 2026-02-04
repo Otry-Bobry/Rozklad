@@ -27,7 +27,7 @@ body.dark {
   --header-text: #fff;
   --muted: #aaa;
   --today: #002247;
-  --shadow: #ffffff25;
+  --shadow: #ffffff00;
   --inside_shadow: #ffffff0e;
 }
 
@@ -56,8 +56,9 @@ body {
 /* 🔹 Header */
 .header {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  position: relative;
   margin-bottom: 18px;
 }
 
@@ -146,6 +147,7 @@ body {
   background: var(--header-bg);
   border-radius: 8px;
   box-shadow: 0 1px 4px var(--inside_shadow);
+  transition: background 0.3s, color 0.3s;
 }
 
 /* 🔹 Блоки розкладу */
@@ -235,16 +237,14 @@ body {
   .week-day-block { padding-top: 10px; }
 }
 
-a{color: var(--text);}
+.footer a {
+  color: var(--text);
+}
 
 .lesson-cell {
   display: flex;
   justify-content: space-between; /* текст зліва, іконка справа */
   align-items: center;
-}
-
-.lesson-left {
-  display: inline-block;   /* блок підлаштовується під контент */
 }
 
 .lesson-room {
@@ -264,4 +264,168 @@ a{color: var(--text);}
   line-height: 0;          /* прибирає додатковий пробіл всередині */
   text-decoration: none; 
   margin-left: 3px;
+}
+
+.burger-btn {
+  position: absolute;
+  left: 0;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.burger-btn:hover {
+  background: var(--blue-dark);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===== Burger menu ===== */
+.burger-menu {
+  position: fixed;
+  top: 70px;
+  left: 16px;
+  width: 280px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+  padding: 12px;
+  display: none;
+  z-index: 3000;
+}
+
+.burger-menu.open {
+  display: block;
+}
+
+.burger-menu.none{
+  display: none;
+}
+
+
+/* accordion */
+.burger-subject {
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--bg);
+  margin-top: 6px;
+  box-shadow: 0 0 5px var(--shadow);
+}
+
+.burger-groups {
+  margin: 5px;
+  display: none;
+  color: var(--text);
+}
+
+.burger-groups button {
+  width: 100%;
+  text-align: left;
+  padding: 6px;
+  border: none;
+  background: var(--bg);
+  cursor: pointer;
+  color: var(--text);
+  border-radius: 8px;
+  margin-top: 2px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.burger-groups button:hover {
+  background: var(--blue-dark);
+  color: white;
+  transition: 0.5s;
+  transition: background 0.3s, color 0.3s;
+}
+
+.burger-groups button.active {
+  background: var(--blue);
+  color: white;
+  transition: 0.5s;
+  transition: background 0.3s, color 0.3s;
+}
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  transition: background 0.3s, color 0.3s;
+}
+
+.onboarding.hidden {
+  display: none;
+}
+
+.onboarding__card {
+  background: var(--card);
+  padding: 24px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  text-align: center;
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+.onboarding__card select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+.onboarding__card button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--blue-dark);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+.onboarding__card button:hover {
+  background: var(--blue) ;
+  border: #000 1px solid;
+}
+
+.onboarding__card button.active {
+  border: #000 1px solid !important;
+  background: var(--green);
+}
+
+.onboarding__continue-btn {
+  background: var(--green) !important;
+}
+
+.app {
+  display: none;
+}
+
+.onboarding-theme-btn {
+  background: var(--blue) !important;
+  top: 16px;
+  right: 16px;
+  width: auto;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
+.onboarding-theme-btn:hover {
+  background: var(--blue-dark) !important;
 }

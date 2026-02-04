@@ -6,6 +6,9 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/1PdUmF2UjeKjiYnzz9Tc0Y6
 let scheduleData = {}; // { group: {Понеділок: [{time,subject,room,link}, ...], ...} }
 let groups = [];
 let currentGroup = null;
+let selectedSubgroups = {}; 
+// { "Англійська": "1", "Сольфеджіо": "А" }
+
 
 const daysOrder = ["Понеділок","Вівторок","Середа","Четвер","П’ятниця","Субота","Неділя"];
 const daysForGetDay = ["Неділя","Понеділок","Вівторок","Середа","Четвер","П’ятниця","Субота"];
@@ -85,11 +88,14 @@ function findIndexByAliases(headersNorm, aliases){
 /** Завантажуємо CSV з Google Sheets і структуруємо дані */
 async function loadSchedule(){
   try{
+    
     showLoading(true);
+
     const res = await fetch(sheetUrl);
     if(!res.ok){
       throw new Error(`Fetch error: ${res.status}`);
     }
+
     const text = await res.text();
     const rawRows = parseCSV(text).map(r => r.map(c => (c||"").trim()));
     if(rawRows.length === 0){
@@ -107,6 +113,7 @@ async function loadSchedule(){
       time: ['time','час','time_','hour'],
       subject: ['subject','предмет','lesson','course','назва'],
       room: ['room','auditorium','аудиторія','ауд','classroom','аудиторія№','аудиторіяномер'],
+      subgroup: ['subgroup','підгрупа','group2'],
       link: ['link','url','посилання','лінк','meeting','meetinglink']
     };
 
@@ -134,6 +141,7 @@ async function loadSchedule(){
       const day = (idx.day >=0 ? (row[idx.day] || "") : "").trim();
       const time = (idx.time >=0 ? (row[idx.time] || "") : "").trim();
       const subject = (idx.subject >=0 ? (row[idx.subject] || "") : "").trim();
+      const subgroup = idx.subgroup >= 0 ? row[idx.subgroup].trim() : "";
       const room = (idx.room >=0 ? (row[idx.room] || "") : "").trim();
       let link = (idx.link >=0 ? (row[idx.link] || "") : "").trim();
 
@@ -146,12 +154,35 @@ async function loadSchedule(){
 
       if(!scheduleData[group]) scheduleData[group] = {};
       if(!scheduleData[group][day]) scheduleData[group][day] = [];
-      scheduleData[group][day].push({time, subject, room, link});
+      scheduleData[group][day].push({time, subject, subgroup, room, link});
 
       if(!groups.includes(group)) groups.push(group);
     }
 
     groups.sort();
+
+    const savedGroup = localStorage.getItem('selectedGroup');
+    const savedSubs = localStorage.getItem('selectedSubgroups');
+
+    if(savedSubs){
+      selectedSubgroups = JSON.parse(savedSubs);
+    }
+
+    populateOnboardingGroups();
+
+    const app = document.querySelector('.app');
+
+    if(!savedGroup){
+      document.getElementById('onboarding').classList.remove('hidden');
+      showLoading(false);
+      return;
+    }
+
+    // ✅ ТІЛЬКИ ТУТ
+    app.style.display = 'block';
+    document.querySelector('.app').style.display = 'block';
+
+
     populateGroupSelect();
 
     const stored = localStorage.getItem('selectedGroup');
@@ -160,6 +191,7 @@ async function loadSchedule(){
     if(currentGroup){
       groupSelect.value = currentGroup;
       renderGroup(currentGroup);
+      buildBurgerMenu(); 
     } else {
       document.getElementById('today').innerHTML = '<div class="schedule__empty">Розклад не знайдено.</div>';
       document.getElementById('week').innerHTML = '';
@@ -174,6 +206,212 @@ async function loadSchedule(){
   }
 }
 
+const savedTheme = localStorage.getItem("theme");
+if(savedTheme === "dark"){
+  document.body.classList.add("dark");
+}
+
+
+function buildOnboardingSubgroups(group){
+  if(!scheduleData[group]) return;
+
+  const wrap = document.getElementById('onboarding-subgroups');
+  wrap.innerHTML = '';
+
+  const subjects = {};
+
+  for(const day in scheduleData[group]){
+    scheduleData[group][day].forEach(item => {
+      if(!item.subgroup) return;
+      if(!subjects[item.subject]) subjects[item.subject] = new Set();
+      subjects[item.subject].add(item.subgroup);
+    });
+  }
+
+  Object.keys(subjects).forEach(subject => {
+
+    const title = document.createElement('div');
+    title.className = 'burger-subject';
+    title.textContent = subject;
+
+    const list = document.createElement('div');
+    list.className = 'burger-groups';
+
+    subjects[subject].forEach(sub => {
+      const btn = document.createElement('button');
+      btn.textContent = `Група ${sub}`;
+
+      // 🔁 відновлення активного стану
+      if(
+        Array.isArray(selectedSubgroups[subject]) &&
+        selectedSubgroups[subject].includes(sub)
+      ){
+        btn.classList.add('active');
+      }
+
+      btn.onclick = () => {
+        if(!Array.isArray(selectedSubgroups[subject])){
+          selectedSubgroups[subject] = [];
+        }
+
+        if(selectedSubgroups[subject].includes(sub)){
+          selectedSubgroups[subject] =
+            selectedSubgroups[subject].filter(s => s !== sub);
+          btn.classList.remove('active');
+        } else {
+          selectedSubgroups[subject].push(sub);
+          btn.classList.add('active');
+        }
+
+        localStorage.setItem(
+          "theme",
+          document.body.classList.contains("dark") ? "dark" : "light"
+        );
+
+        localStorage.setItem(
+          'selectedSubgroups',
+          JSON.stringify(selectedSubgroups)
+        );
+      };
+
+      list.appendChild(btn);
+    });
+
+    // 🔽 розгортання / згортання
+    title.onclick = () => {
+      list.style.display =
+        list.style.display === 'block' ? 'none' : 'block';
+    };
+
+    wrap.appendChild(title);
+    wrap.appendChild(list);
+  });
+}
+
+
+function populateOnboardingGroups(){
+  const sel = document.getElementById('onboarding-group');
+  sel.innerHTML = '';
+
+  groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    sel.appendChild(opt);
+  });
+
+  sel.onchange = () => {
+  selectedSubgroups = {};                 // ❗ скидаємо підгрупи
+  localStorage.removeItem('selectedSubgroups');
+  buildOnboardingSubgroups(sel.value);
+  };
+
+  buildOnboardingSubgroups(sel.value);
+}
+
+
+function finishOnboarding(){
+  const group = document.getElementById('onboarding-group').value;
+
+  currentGroup = group;
+  localStorage.setItem('selectedGroup', group);
+  localStorage.setItem(
+    'selectedSubgroups',
+    JSON.stringify(selectedSubgroups)
+  );
+
+  document.getElementById('onboarding').classList.add('hidden');
+
+  document.querySelector('.app').style.display = 'block';
+
+  renderGroup(group);
+  buildBurgerMenu();
+}
+
+
+
+
+function toggleBurger(){
+  document.getElementById('burgerMenu').classList.toggle('open');
+}
+
+function buildBurgerMenu(){
+  const menu = document.getElementById('burgerMenu');
+  menu.innerHTML = '';
+
+  if(!currentGroup || !scheduleData[currentGroup]) return;
+
+  const subjects = {};
+
+  // збір предметів + підгруп
+  for(const day in scheduleData[currentGroup]){
+    scheduleData[currentGroup][day].forEach(item => {
+      if(!item.subgroup) return;
+
+      if(!subjects[item.subject]){
+        subjects[item.subject] = new Set();
+      }
+      subjects[item.subject].add(item.subgroup);
+    });
+  }
+
+  // побудова меню
+  Object.keys(subjects).forEach(subject => {
+    const title = document.createElement('div');
+    title.className = 'burger-subject';
+    title.textContent = subject;
+
+    const list = document.createElement('div');
+    list.className = 'burger-groups';
+
+    // гарантія структури
+    if(!Array.isArray(selectedSubgroups[subject])){
+      selectedSubgroups[subject] = [];
+    }
+
+    subjects[subject].forEach(sub => {
+      const btn = document.createElement('button');
+      btn.textContent = `Група ${sub}`;
+
+      // 🔹 підсвітка збереженого стану
+      if(selectedSubgroups[subject].includes(sub)){
+        btn.classList.add('active');
+      }
+
+      btn.onclick = () => {
+        const arr = selectedSubgroups[subject];
+
+        if(arr.includes(sub)){
+          selectedSubgroups[subject] = arr.filter(s => s !== sub);
+          btn.classList.remove('active');
+        } else {
+          arr.push(sub);
+          btn.classList.add('active');
+        }
+
+        localStorage.setItem(
+          'selectedSubgroups',
+          JSON.stringify(selectedSubgroups)
+        );
+
+        renderGroup(currentGroup);
+      };
+
+      list.appendChild(btn);
+    });
+
+    title.onclick = () => {
+      list.style.display =
+        list.style.display === 'block' ? 'none' : 'block';
+    };
+
+    menu.appendChild(title);
+    menu.appendChild(list);
+  });
+}
+
+
+
 function populateGroupSelect(){
   groupSelect.innerHTML = "";
   groups.forEach(g => {
@@ -187,17 +425,39 @@ function populateGroupSelect(){
 /** Зміна групи зі списку */
 function changeGroup(group){
   if(!group) return;
+
   currentGroup = group;
+  selectedSubgroups = {};
+  localStorage.removeItem('selectedSubgroups');
+
   localStorage.setItem('selectedGroup', group);
+
   renderGroup(group);
+  buildBurgerMenu();
 }
+
 
 /** Рендерити вибрану групу */
 function renderGroup(group){
   const week = scheduleData[group] || {};
-  const todayName = daysForGetDay[new Date().getDay()]; // 0..6 -> Неділя..Субота
-  renderToday(week[todayName] || []);
-  renderWeek(week, todayName);
+  const todayName = daysForGetDay[new Date().getDay()];
+
+  const filtered = {};
+
+  for(const day in week){
+    filtered[day] = week[day].filter(item => {
+      if(item.subgroup){
+        const selected = selectedSubgroups[item.subject];
+        if(Array.isArray(selected) && !selected.includes(item.subgroup)){
+          return false;
+        }
+      }
+    return true;
+    });
+  }
+
+  renderToday(filtered[todayName] || []);
+  renderWeek(filtered, todayName);
 }
 
 /** Створює TD для предмета з аудиторією і посиланням */
@@ -377,10 +637,22 @@ function escapeHtml(str){
 loadSchedule();
 
 // Темна тема (кнопка)
-const themeBtn = document.getElementById("themeToggle");
-if(themeBtn){
-  themeBtn.addEventListener("click", () => {
+function initThemeToggle(btn){
+  if(!btn) return;
+
+  btn.addEventListener("click", () => {
     document.body.classList.toggle("dark");
-    themeBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+
+    const isDark = document.body.classList.contains("dark");
+    btn.textContent = isDark ? "☀️" : "🌙";
+
+    // синхронізуємо всі кнопки
+    document
+      .querySelectorAll(".theme-toggle")
+      .forEach(b => b.textContent = btn.textContent);
   });
 }
+
+initThemeToggle(document.getElementById("themeToggle"));
+initThemeToggle(document.getElementById("themeToggleOnboarding"));
+
