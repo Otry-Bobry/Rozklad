@@ -245,7 +245,7 @@ function buildOnboardingSubgroups(group){
 
     subjects[subject].forEach(sub => {
       const btn = document.createElement('button');
-      btn.textContent = `Група ${sub}`;
+      btn.textContent = sub === 'OPT'? 'Показувати' : `Група ${sub}`;
 
       if(selectedSubgroups[subject].includes(sub)){
         btn.classList.add('active');
@@ -337,7 +337,7 @@ function buildBurgerMenu(){
 
   for(const day in scheduleData[currentGroup]){
     scheduleData[currentGroup][day].forEach(item => {
-      if(!item.subgroup) return;
+      if (!item.subgroup) return; // null / undefined — ігноруємо
 
       const subjectKey = normalizeSubject(item.subject);
 
@@ -360,7 +360,8 @@ function buildBurgerMenu(){
 
     subjects[subject].forEach(sub => {
       const btn = document.createElement('button');
-      btn.textContent = `Група ${sub}`;
+      btn.textContent = sub === 'OPT'? 'Показувати' : `Група ${sub}`;
+
 
       if(selectedSubgroups[subject].includes(sub)){
         btn.classList.add('active');
@@ -432,18 +433,23 @@ function renderGroup(group){
 
   for(const day in week){
     filtered[day] = week[day].filter(item => {
+      const selected = selectedSubgroups[item.subject];
 
-      if(!item.subgroup) return true;
-
-      const subjectKey = normalizeSubject(item.subject);
-      const selected = selectedSubgroups[subjectKey];
-
-      if(!Array.isArray(selected) || selected.length === 0){
-        return false;
+      // 🔹 вибірний предмет (німецька)
+      if (item.subgroup === 'OPT') {
+        return Array.isArray(selected) && selected.includes('OPT');
       }
 
-      return selected.includes(item.subgroup);
+      // 🔹 предмет з підгрупами
+      if (item.subgroup) {
+        if (!Array.isArray(selected)) return false;
+        return selected.includes(item.subgroup);
+      }
+
+      // 🔹 звичайний предмет — завжди показуємо
+      return true;
     });
+
   }
 
   renderToday(filtered[todayName] || []);
@@ -649,6 +655,10 @@ function normalizeSubject(subject) {
 
   if (subject.toLowerCase().includes("оркестр")) {
     return "Оркестр";
+  }if (subject.toLowerCase().includes("ансамбль")) {
+    return "Ансамбль";
+  }if (subject.toLowerCase().includes("хор")) {
+    return "Хор";
   }
 
   return subject;
