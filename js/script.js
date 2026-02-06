@@ -223,13 +223,15 @@ function buildOnboardingSubgroups(group){
   for(const day in scheduleData[group]){
     scheduleData[group][day].forEach(item => {
       if(!item.subgroup) return;
-      if(!subjects[item.subject]) subjects[item.subject] = new Set();
-      subjects[item.subject].add(item.subgroup);
+
+      const subjectKey = normalizeSubject(item.subject);
+
+      if(!subjects[subjectKey]) subjects[subjectKey] = new Set();
+      subjects[subjectKey].add(item.subgroup);
     });
   }
 
   Object.keys(subjects).forEach(subject => {
-
     const title = document.createElement('div');
     title.className = 'burger-subject';
     title.textContent = subject;
@@ -237,36 +239,28 @@ function buildOnboardingSubgroups(group){
     const list = document.createElement('div');
     list.className = 'burger-groups';
 
+    if(!Array.isArray(selectedSubgroups[subject])){
+      selectedSubgroups[subject] = [];
+    }
+
     subjects[subject].forEach(sub => {
       const btn = document.createElement('button');
       btn.textContent = `Група ${sub}`;
 
-      // 🔁 відновлення активного стану
-      if(
-        Array.isArray(selectedSubgroups[subject]) &&
-        selectedSubgroups[subject].includes(sub)
-      ){
+      if(selectedSubgroups[subject].includes(sub)){
         btn.classList.add('active');
       }
 
       btn.onclick = () => {
-        if(!Array.isArray(selectedSubgroups[subject])){
-          selectedSubgroups[subject] = [];
-        }
+        const arr = selectedSubgroups[subject];
 
-        if(selectedSubgroups[subject].includes(sub)){
-          selectedSubgroups[subject] =
-            selectedSubgroups[subject].filter(s => s !== sub);
+        if(arr.includes(sub)){
+          selectedSubgroups[subject] = arr.filter(s => s !== sub);
           btn.classList.remove('active');
         } else {
-          selectedSubgroups[subject].push(sub);
+          arr.push(sub);
           btn.classList.add('active');
         }
-
-        localStorage.setItem(
-          "theme",
-          document.body.classList.contains("dark") ? "dark" : "light"
-        );
 
         localStorage.setItem(
           'selectedSubgroups',
@@ -277,10 +271,8 @@ function buildOnboardingSubgroups(group){
       list.appendChild(btn);
     });
 
-    // 🔽 розгортання / згортання
     title.onclick = () => {
-      list.style.display =
-        list.style.display === 'block' ? 'none' : 'block';
+      list.style.display = list.style.display === 'block' ? 'none' : 'block';
     };
 
     wrap.appendChild(title);
@@ -343,19 +335,17 @@ function buildBurgerMenu(){
 
   const subjects = {};
 
-  // збір предметів + підгруп
   for(const day in scheduleData[currentGroup]){
     scheduleData[currentGroup][day].forEach(item => {
       if(!item.subgroup) return;
 
-      if(!subjects[item.subject]){
-        subjects[item.subject] = new Set();
-      }
-      subjects[item.subject].add(item.subgroup);
+      const subjectKey = normalizeSubject(item.subject);
+
+      if(!subjects[subjectKey]) subjects[subjectKey] = new Set();
+      subjects[subjectKey].add(item.subgroup);
     });
   }
 
-  // побудова меню
   Object.keys(subjects).forEach(subject => {
     const title = document.createElement('div');
     title.className = 'burger-subject';
@@ -364,7 +354,6 @@ function buildBurgerMenu(){
     const list = document.createElement('div');
     list.className = 'burger-groups';
 
-    // гарантія структури
     if(!Array.isArray(selectedSubgroups[subject])){
       selectedSubgroups[subject] = [];
     }
@@ -373,7 +362,6 @@ function buildBurgerMenu(){
       const btn = document.createElement('button');
       btn.textContent = `Група ${sub}`;
 
-      // 🔹 підсвітка збереженого стану
       if(selectedSubgroups[subject].includes(sub)){
         btn.classList.add('active');
       }
@@ -401,8 +389,7 @@ function buildBurgerMenu(){
     });
 
     title.onclick = () => {
-      list.style.display =
-        list.style.display === 'block' ? 'none' : 'block';
+      list.style.display = list.style.display === 'block' ? 'none' : 'block';
     };
 
     menu.appendChild(title);
@@ -441,29 +428,21 @@ function changeGroup(group){
 function renderGroup(group){
   const week = scheduleData[group] || {};
   const todayName = daysForGetDay[new Date().getDay()];
-
   const filtered = {};
 
-  for (const day in week) {
+  for(const day in week){
     filtered[day] = week[day].filter(item => {
 
-      // якщо у предмета НЕМАЄ підгрупи → показуємо
-      if (!item.subgroup) return true;
+      if(!item.subgroup) return true;
 
-      const selected = selectedSubgroups[item.subject];
+      const subjectKey = normalizeSubject(item.subject);
+      const selected = selectedSubgroups[subjectKey];
 
-      // якщо користувач нічого не вибрав для цього предмета → НЕ показуємо
-      if (!Array.isArray(selected) || selected.length === 0) {
+      if(!Array.isArray(selected) || selected.length === 0){
         return false;
       }
 
-      // якщо ця підгрупа не входить у вибрані → НЕ показуємо
-      if (!selected.includes(item.subgroup)) {
-        return false;
-      }
-
-      // інакше → показуємо
-      return true;
+      return selected.includes(item.subgroup);
     });
   }
 
@@ -663,6 +642,16 @@ function initThemeToggle(btn){
       .querySelectorAll(".theme-toggle")
       .forEach(b => b.textContent = btn.textContent);
   });
+}
+
+function normalizeSubject(subject) {
+  if (!subject) return subject;
+
+  if (subject.toLowerCase().includes("оркестр")) {
+    return "Оркестр";
+  }
+
+  return subject;
 }
 
 initThemeToggle(document.getElementById("themeToggle"));
