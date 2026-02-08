@@ -433,23 +433,24 @@ function renderGroup(group){
 
   for(const day in week){
     filtered[day] = week[day].filter(item => {
-      const selected = selectedSubgroups[item.subject];
 
-      // 🔹 вибірний предмет (німецька)
+      const subjectKey = normalizeSubject(item.subject);
+      const selected = selectedSubgroups[subjectKey];
+
+      // вибірний предмет (OPT)
       if (item.subgroup === 'OPT') {
         return Array.isArray(selected) && selected.includes('OPT');
       }
 
-      // 🔹 предмет з підгрупами
+      // предмет з підгрупами (оркестри, ансамблі і тд)
       if (item.subgroup) {
         if (!Array.isArray(selected)) return false;
         return selected.includes(item.subgroup);
       }
 
-      // 🔹 звичайний предмет — завжди показуємо
+      // звичайний предмет
       return true;
     });
-
   }
 
   renderToday(filtered[todayName] || []);
