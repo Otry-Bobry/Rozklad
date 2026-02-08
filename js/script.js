@@ -108,6 +108,7 @@ async function loadSchedule(){
 
     // допустимі назви колонок (пошук враховує англ/укр варіанти)
     const aliases = {
+      id: ['id'],
       group: ['group','група','groupname','groupid'],
       day: ['day','день'],
       time: ['time','час','time_','hour'],
@@ -137,6 +138,7 @@ async function loadSchedule(){
       const row = rawRows[r];
       if(!row || row.length === 0) continue;
 
+      const id = idx.id >= 0 ? row[idx.id].trim() : "";
       const group = (idx.group >=0 ? (row[idx.group] || "") : "").trim();
       const day = (idx.day >=0 ? (row[idx.day] || "") : "").trim();
       const time = (idx.time >=0 ? (row[idx.time] || "") : "").trim();
@@ -154,7 +156,16 @@ async function loadSchedule(){
 
       if(!scheduleData[group]) scheduleData[group] = {};
       if(!scheduleData[group][day]) scheduleData[group][day] = [];
-      scheduleData[group][day].push({time, subject, subgroup, room, link});
+      scheduleData[group][day].push({
+        id: id || crypto.randomUUID(),
+        time,
+        subject,
+        subgroup,
+        room,
+        link,
+        enabled: true,
+        type: "sheet"
+      });
 
       if(!groups.includes(group)) groups.push(group);
     }
@@ -222,7 +233,7 @@ function buildOnboardingSubgroups(group){
 
   for(const day in scheduleData[group]){
     scheduleData[group][day].forEach(item => {
-      if(!item.subgroup) return;
+      if (item.enabled === false) return false;
 
       const subjectKey = normalizeSubject(item.subject);
 
@@ -337,7 +348,7 @@ function buildBurgerMenu(){
 
   for(const day in scheduleData[currentGroup]){
     scheduleData[currentGroup][day].forEach(item => {
-      if (!item.subgroup) return; // null / undefined — ігноруємо
+      if (item.enabled === false) return; // null / undefined — ігноруємо
 
       const subjectKey = normalizeSubject(item.subject);
 
@@ -433,7 +444,10 @@ function renderGroup(group){
 
   for(const day in week){
     filtered[day] = week[day].filter(item => {
-      const selected = selectedSubgroups[item.subject];
+      const subjectKey = normalizeSubject(item.subject);
+      const selected = selectedSubgroups[subjectKey];
+
+      if (item.enabled === false) return false;
 
       // 🔹 вибірний предмет (німецька)
       if (item.subgroup === 'OPT') {
